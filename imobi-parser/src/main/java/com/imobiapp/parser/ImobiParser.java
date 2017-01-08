@@ -2,7 +2,9 @@ package com.imobiapp.parser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,8 +21,7 @@ public class ImobiParser {
         public String title;
     }
 
-    private static final String IMOBI_URL =
-            "https://www.nepremicnine.net/oglasi-prodaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-center,ljubljana-moste-polje,ljubljana-siska,ljubljana-vic-rudnik/stanovanje/cena-od-150000-do-230000-eur,velikost-od-65-do-170-m2,letnik-od-1995-do-2017/";
+    public static final String IMOBI_BASE_URL = "https://www.nepremicnine.net";
 
     private JSoupDocumentRetriever jSoupDocumentRetriever;
 
@@ -84,9 +85,30 @@ public class ImobiParser {
         return resultPages;
     }
 
-    public List<String> getDataPagesToParse(List<String> listingPages) throws IOException {
-        return null;
+    public List<String> getDataPages(List<String> listingPages) throws IOException {
+        Set<String> resultPages = new HashSet<>();
+
+        // iterate over all the listing pages and store all the ads to be parsed in the next stage
+        for (String url : listingPages) {
+
+            Document doc = jSoupDocumentRetriever.getDocument(url);
+            String pattern = "\\/oglasi-prodaja\\/.*?\\/";
+            Pattern r = Pattern.compile(pattern);
+
+            // parse only those links which come from "oglas_container" div
+            Elements adContainerElements = doc.getElementsByClass("oglas_container");
+            if (adContainerElements != null && adContainerElements.size() > 0) {
+                for (Element adContainerElement : adContainerElements) {
+                    Elements linksList = adContainerElement.getElementsByAttributeValueMatching("href", r);
+                    if (linksList.size() > 0) {
+                        for (Element link : linksList) {
+                            resultPages.add(IMOBI_BASE_URL + link.attr("href"));
+                        }
+                    }
+                }
+            }
+        }
+
+        return new ArrayList<>(resultPages);
     }
-
-
 }

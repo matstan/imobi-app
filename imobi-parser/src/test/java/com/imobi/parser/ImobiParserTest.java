@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,16 @@ public class ImobiParserTest {
 
 
         JSoupDocumentRetriever jSoupDocumentRetriever = mock(JSoupDocumentRetriever.class);
+        when(jSoupDocumentRetriever.getDocument(anyString())).thenAnswer(new Answer<Document>() {
+            @Override
+            public Document answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                String url = (String) args[0];
+
+                return getDocument(REQUEST_FILE_MAPPING.get(url));
+            }
+        });
+
         when(jSoupDocumentRetriever.getDocument(anyString(), anyInt())).thenAnswer(new Answer<Document>() {
             @Override
             public Document answer(InvocationOnMock invocation) throws Throwable {
@@ -117,5 +128,16 @@ public class ImobiParserTest {
         Assert.assertThat(listingsPages, notNullValue());
         Assert.assertThat(listingsPages.size(), is(1));
         Assert.assertThat(listingsPages, hasItem(is(TEST_URL_PAGINATION_ABSENT.replaceFirst("\\{pageNumber\\}", String.valueOf(1)))));
+    }
+
+    @Test
+    public void getDataPages() throws IOException {
+        List<String> listingsPages = imobiParser.getDataPages(Arrays.asList(TEST_URL_PAGINATION_1, TEST_URL_PAGINATION_2));
+
+        Assert.assertThat(listingsPages, notNullValue());
+        Assert.assertThat(listingsPages.size(), is(42));
+        Assert.assertThat(listingsPages, hasItem(ImobiParser.IMOBI_BASE_URL + "/oglasi-prodaja/crnuce-spodnje-okrogarjeva-2-stanovanje_5966303/"));
+        Assert.assertThat(listingsPages, hasItem(ImobiParser.IMOBI_BASE_URL + "/oglasi-prodaja/lj-center-vrtaca-stanovanje_6053889/"));
+        Assert.assertThat(listingsPages, hasItem(ImobiParser.IMOBI_BASE_URL + "/oglasi-prodaja/podutik-glince-hisa_6026354/"));
     }
 }
