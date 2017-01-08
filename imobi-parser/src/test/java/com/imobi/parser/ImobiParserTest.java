@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,13 +134,12 @@ public class ImobiParserTest {
 
     @Test
     public void getDataPages() throws IOException {
-        List<String> listingsPages = imobiParser.getDataPages(Arrays.asList(TEST_URL_PAGINATION_1, TEST_URL_PAGINATION_2));
+        List<String> listingsPages = imobiParser.getAdPages(TEST_URL_PAGINATION_1);
 
         Assert.assertThat(listingsPages, notNullValue());
-        Assert.assertThat(listingsPages.size(), is(42));
+        Assert.assertThat(listingsPages.size(), is(30));
         Assert.assertThat(listingsPages, hasItem(ImobiParser.IMOBI_BASE_URL + "/oglasi-prodaja/crnuce-spodnje-okrogarjeva-2-stanovanje_5966303/"));
         Assert.assertThat(listingsPages, hasItem(ImobiParser.IMOBI_BASE_URL + "/oglasi-prodaja/lj-center-vrtaca-stanovanje_6053889/"));
-        Assert.assertThat(listingsPages, hasItem(ImobiParser.IMOBI_BASE_URL + "/oglasi-prodaja/podutik-glince-hisa_6026354/"));
     }
 
     @Test
@@ -151,8 +149,8 @@ public class ImobiParserTest {
         Assert.assertThat(adData, notNullValue());
         Assert.assertThat(adData.url, is(TEST_URL_AD_CONTENT_1));
         Assert.assertThat(adData.summary, is("Prodaja, hiša, dvojček: ŠMARTNO POD ŠMARNO GORO, 138 m2"));
-        Assert.assertThat(adData.price, is(350000L));
-        Assert.assertThat(adData.size, is(138D));
+        Assert.assertThat(adData.price, is("350.000,00 €"));
+        Assert.assertThat(adData.size, is("138"));
         Assert.assertThat(adData.shortDescripton, is("ŠMARTNO POD ŠMARNO GORO, 138 m2, dvojček, zgrajen l. 2016, 386 m2 zemljišča, prodamo. Cena: 350.000,00 EUR"));
         Assert.assertThat(adData.longDescription, is("V spodnjih Pirničah, ob robu gozda prodamo energetsko varčni dvojček bivalne površine 138m2. Zraven je območje Nature 2000, zaradi česar naprej ne bo več novogradenj. Hiša ima tri etaže. V spodnji je dnevni prostor z velikimi steklenimi površinami, orieintiran na jug. Vsa okna in vrata na fasadi so ALU, zastekljena s 3-slojnim izolacijskim steklom polnjenim s plinom. Spodaj so še vetrolov, garderoba in stranišče. V prvem nadstropju sta dve sobi, stena med njima ni nosilna ter kopalnica. V vrhnjem nadstropju sta prav tako dve sobi v katerih je strop na enem delu visok 3 metre. Ogrevanje je na toplotno črpalko, streha je prekrita z vlaknocementnimi ploščami. Stene v pritličju in nadstropju so klasično zidane z modularno opeko debeline 25cm, notranje stene 20cm. Plošča med pritličjem in nadstropjem je debela 16cm. Nepremičnini pripadata dve parkirni mesti, predvidoma bo končana julija 2016."));
         Assert.assertThat(adData.contact, is("LJUBLJANA NEPREMIČNINE d.o.o. Cesta na Brdo 69 1000 Ljubljana 01/244-50-00 Nejc Šink 030/313-004 http://www.ljubljananepremicnine.si"));

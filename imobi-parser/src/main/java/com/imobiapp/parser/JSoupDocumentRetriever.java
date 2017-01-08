@@ -11,11 +11,11 @@ import org.jsoup.nodes.Document;
 public class JSoupDocumentRetriever {
 
     public Document getDocument(String url) throws IOException {
-        return Jsoup.connect(url).get();
+        return Jsoup.connect(url).timeout(0).get();
     }
 
     public Document getDocument(String url, int pageNumber) throws IOException {
-        return Jsoup.connect(getNumberedPage(url, pageNumber)).get();
+        return Jsoup.connect(getNumberedPage(url, pageNumber)).timeout(0).get();
     }
 
     public String getNumberedPage(String url, int pageNumber) {

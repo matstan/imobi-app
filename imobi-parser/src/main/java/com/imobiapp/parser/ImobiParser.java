@@ -1,12 +1,10 @@
 package com.imobiapp.parser;
 
 import java.io.IOException;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,14 +13,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author matics.
  */
 public class ImobiParser {
-
-    public static class ImobiData {
-        public String title;
-    }
 
     public static final String IMOBI_BASE_URL = "https://www.nepremicnine.net";
 
@@ -32,31 +28,32 @@ public class ImobiParser {
         this.jSoupDocumentRetriever = jSoupDocumentRetriever;
     }
 
-    public List<ImobiData> parseDataFromPage(Document doc) throws IOException {
-        List<ImobiData> result = new ArrayList<ImobiData>();
+    /**
+     * Retrieves consolidated ad data from all the available pages (pagination) for baseUrl.
+     *
+     * @param baseUrl
+     * @return
+     * @throws IOException
+     * @throws ParseException
+     */
+    public List<AdData> parseData(String baseUrl) throws IOException, ParseException {
+        List<String> adPages = new ArrayList<>();
+        List<String> listingPages = getListingPages(baseUrl);
+        for (String listingPage : listingPages) {
+            adPages.addAll(getAdPages(listingPage));
+        }
 
-        Element paginationElement = doc.getElementById("pagination");
-        Elements anchorElements = paginationElement.getElementsByTag("a");
+        List<AdData> adDataList = new ArrayList<>(adPages.size());
+        for (String adPageUrl : adPages) {
+            adDataList.add(getAdData(adPageUrl));
+        }
 
-        //        String title = doc.title();
-        //
-        //        Elements adds = doc.getElementsByClass("oglas_container");
-        //        for (Element add : adds) {
-        //            ImobiData imobiData = new ImobiData();
-        //            imobiData.title = add.nodeName();
-        //
-        //            result.add(imobiData);
-        //        }
-        //
-        //
-        //        return result;
-
-        return null;
+        return adDataList;
     }
 
     /**
      * Retrieves all the pages for {@param baseUrl}.
-     *
+     * <p>
      * The {@param baseUrl} must be a valid GET query for "nepremicnine.net" with the {page_number}
      * placeholder within. For the purpose of retrieving all the possible pages, the number "1" is
      * placed for {page_number} so that the actual number of pages can be retrieved.
@@ -102,32 +99,30 @@ public class ImobiParser {
     }
 
     /**
-     * Searches through all the {@param listingPages} and retrieves all the links to
+     * Searches through the {@param listingPage} and retrieves all the links to
      * the ad pages.
      *
      * @param listingPages
      * @return
      * @throws IOException
      */
-    public List<String> getDataPages(List<String> listingPages) throws IOException {
+    public List<String> getAdPages(String listingPage) throws IOException {
         Set<String> resultPages = new HashSet<>();
 
         // iterate over all the listing pages and store all the ads to be parsed in the next stage
-        for (String url : listingPages) {
 
-            Document doc = jSoupDocumentRetriever.getDocument(url);
-            String pattern = "\\/oglasi-prodaja\\/.*?\\/";
-            Pattern r = Pattern.compile(pattern);
+        Document doc = jSoupDocumentRetriever.getDocument(listingPage);
+        String pattern = "\\/oglasi-prodaja\\/.*?\\/";
+        Pattern r = Pattern.compile(pattern);
 
-            // parse only those links which come from "oglas_container" div
-            Elements adContainerElements = doc.getElementsByClass("oglas_container");
-            if (adContainerElements != null && adContainerElements.size() > 0) {
-                for (Element adContainerElement : adContainerElements) {
-                    Elements linksList = adContainerElement.getElementsByAttributeValueMatching("href", r);
-                    if (linksList.size() > 0) {
-                        for (Element link : linksList) {
-                            resultPages.add(IMOBI_BASE_URL + link.attr("href"));
-                        }
+        // parse only those links which come from "oglas_container" div
+        Elements adContainerElements = doc.getElementsByClass("oglas_container");
+        if (adContainerElements != null && adContainerElements.size() > 0) {
+            for (Element adContainerElement : adContainerElements) {
+                Elements linksList = adContainerElement.getElementsByAttributeValueMatching("href", r);
+                if (linksList.size() > 0) {
+                    for (Element link : linksList) {
+                        resultPages.add(IMOBI_BASE_URL + link.attr("href"));
                     }
                 }
             }
@@ -145,6 +140,7 @@ public class ImobiParser {
      * @throws ParseException
      */
     public AdData getAdData(String url) throws IOException, ParseException {
+        System.out.println("Parsing ..." + url);
         AdData adData = new AdData();
         adData.url = url;
         Document doc = jSoupDocumentRetriever.getDocument(url);
@@ -155,22 +151,20 @@ public class ImobiParser {
             adData.summary = summaryElements.get(0).html();
 
             String[] summarySplit = adData.summary.split(",");
-            String sizeString = summarySplit[summarySplit.length - 1].replace("m2", "").trim();
-            adData.size = Double.parseDouble(sizeString);
-
+            adData.size = summarySplit[summarySplit.length - 1].replace("m2", "").trim();
         }
 
         Elements priceElements = doc.getElementById("podrobnosti").getElementsByClass("cena clearfix");
         if (priceElements.size() == 1) {
-            String currencyString = priceElements.get(0).getElementsByTag("span").get(0).html();
-            adData.price = (Long) NumberFormat.getCurrencyInstance(Locale.GERMANY).parse(currencyString);
+            adData.price = priceElements.get(0).getElementsByTag("span").get(0).html();
         }
 
         Elements shortDescriptionElements = doc.getElementById("opis").getElementsByClass("kratek");
         if (shortDescriptionElements.size() > 0) {
             Element shortDescriptionElement = shortDescriptionElements.get(0);
             if (shortDescriptionElement.childNodes().size() == 2) {
-                adData.shortDescripton = shortDescriptionElement.childNodes().get(0).childNode(0).toString() + shortDescriptionElement.childNodes().get(1).toString();
+                adData.shortDescripton = shortDescriptionElement.childNodes().get(0).childNode(0).toString() +
+                                         shortDescriptionElement.childNodes().get(1).toString();
             }
         }
 
@@ -190,15 +184,13 @@ public class ImobiParser {
         return adData;
     }
 
-
     public static class AdData {
         public String url;
-        public Long price;
-        public Double size;
+        public String price;
+        public String size;
         public String summary;
         public String shortDescripton;
         public String longDescription;
         public String contact;
-
     }
 }
