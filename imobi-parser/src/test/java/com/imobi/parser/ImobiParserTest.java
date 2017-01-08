@@ -83,7 +83,7 @@ public class ImobiParserTest {
      */
     @Test
     public void getListingsPages_1() throws IOException {
-        List<String> listingsPages = imobiParser.getAllPagesToParse(TEST_URL_PAGINATION_1);
+        List<String> listingsPages = imobiParser.getListingPages(TEST_URL_PAGINATION_1);
 
         Assert.assertThat(listingsPages, notNullValue());
         Assert.assertThat(listingsPages.size(), is(10));
@@ -97,7 +97,7 @@ public class ImobiParserTest {
      */
     @Test
     public void getListingsPages_2() throws IOException {
-        List<String> listingsPages = imobiParser.getAllPagesToParse(TEST_URL_PAGINATION_2);
+        List<String> listingsPages = imobiParser.getListingPages(TEST_URL_PAGINATION_2);
 
         Assert.assertThat(listingsPages, notNullValue());
         Assert.assertThat(listingsPages.size(), is(16));
@@ -112,7 +112,7 @@ public class ImobiParserTest {
      */
     @Test
     public void getListingsPages_3() throws IOException {
-        List<String> listingsPages = imobiParser.getAllPagesToParse(TEST_URL_PAGINATION_ABSENT);
+        List<String> listingsPages = imobiParser.getListingPages(TEST_URL_PAGINATION_ABSENT);
 
         Assert.assertThat(listingsPages, notNullValue());
         Assert.assertThat(listingsPages.size(), is(1));

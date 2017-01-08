@@ -50,7 +50,7 @@ public class ImobiParser {
         return null;
     }
 
-    public List<String> getAllPagesToParse(String baseUrl) throws IOException {
+    public List<String> getListingPages(String baseUrl) throws IOException {
         List<String> resultPages = new ArrayList<String>();
 
         // retrieve first page result
@@ -83,4 +83,10 @@ public class ImobiParser {
 
         return resultPages;
     }
+
+    public List<String> getDataPagesToParse(List<String> listingPages) throws IOException {
+        return null;
+    }
+
+
 }
