@@ -25,6 +25,7 @@ import org.mockito.stubbing.Answer;
 
 import com.imobiapp.parser.ImobiParser;
 import com.imobiapp.parser.JSoupDocumentRetriever;
+import com.imobiapp.parser.dm.AdData;
 
 /**
  * @author matics.
@@ -144,7 +145,7 @@ public class ImobiParserTest {
 
     @Test
     public void getAdData() throws IOException, ParseException {
-        ImobiParser.AdData adData = imobiParser.getAdData(TEST_URL_AD_CONTENT_1);
+        AdData adData = imobiParser.getAdData(TEST_URL_AD_CONTENT_1);
 
         Assert.assertThat(adData, notNullValue());
         Assert.assertThat(adData.url, is(TEST_URL_AD_CONTENT_1));

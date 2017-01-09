@@ -13,7 +13,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.imobiapp.parser.dm.AdData;
 
 /**
  * @author matics.
@@ -182,15 +182,5 @@ public class ImobiParser {
         }
 
         return adData;
-    }
-
-    public static class AdData {
-        public String url;
-        public String price;
-        public String size;
-        public String summary;
-        public String shortDescripton;
-        public String longDescription;
-        public String contact;
     }
 }

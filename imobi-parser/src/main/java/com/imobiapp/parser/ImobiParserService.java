@@ -1,33 +1,64 @@
 package com.imobiapp.parser;
 
-import static com.imobiapp.parser.ImobiParser.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.imobiapp.parser.dm.AdData;
+import com.imobiapp.parser.dm.AdDataHistory;
 
 /**
  * @author matics.
  */
 public class ImobiParserService {
 
-    final ExecutorService executor;
+    private final ExecutorService executor;
 
-    final ImobiParser imobiParser;
+    private final ImobiParser imobiParser;
 
-    public ImobiParserService(ImobiParser imobiParser, int numberOfThreads) {
+    private final DateTimeRetriever dateTimeRetriever;
+
+    public ImobiParserService(ImobiParser imobiParser, int numberOfThreads, DateTimeRetriever dateTimeRetriever) {
         this.imobiParser = imobiParser;
+        this.dateTimeRetriever = dateTimeRetriever;
+
         executor = Executors.newFixedThreadPool(numberOfThreads);
     }
 
-    public String parseDataToJson(List<String> baseUrls) throws IOException, InterruptedException, ExecutionException {
+    public void syncAds(List<String> baseUrls, Map<String, AdDataHistory> existingAds)
+            throws InterruptedException, ExecutionException, IOException {
+        List<AdData> newAds = refreshAds(baseUrls);
+
+        for (AdData newAdData : newAds) {
+            AdDataHistory existingAdDataHistory = existingAds.get(newAdData.url);
+
+            // if there was no previous entry, create one
+            if (existingAdDataHistory == null) {
+                AdDataHistory newAdDataHistory = new AdDataHistory();
+                newAdDataHistory.lastSynced = dateTimeRetriever.getCurrentTimestamp();
+                newAdDataHistory.hash = newAdData.calculateHash();
+                newAdDataHistory.seen = false;
+                newAdDataHistory.adDataHistory.add(newAdData);
+                existingAds.put(newAdData.url, newAdDataHistory);
+            } else {
+                // if there was already a previous entry existing, compare it with the new entry and add new history entry if needed
+                if (!newAdData.calculateHash().equals(existingAdDataHistory.hash)) {
+                    existingAdDataHistory.lastSynced = dateTimeRetriever.getCurrentTimestamp();
+                    existingAdDataHistory.hash = newAdData.calculateHash();
+                    existingAdDataHistory.seen = false;
+                    existingAdDataHistory.adDataHistory.add(newAdData);
+                }
+            }
+        }
+    }
+
+    public List<AdData> refreshAds(List<String> baseUrls) throws IOException, InterruptedException, ExecutionException {
         // first retrieve all listing pages in single thread execution
         List<AdData> adDataList = new ArrayList<>();
         List<String> listingPages = new ArrayList<>();
@@ -92,6 +123,6 @@ public class ImobiParserService {
             executor.shutdown();
         }
 
-        return new ObjectMapper().writeValueAsString(adDataList);
+        return adDataList;
     }
 }

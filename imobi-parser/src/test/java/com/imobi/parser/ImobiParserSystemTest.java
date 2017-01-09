@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.imobiapp.parser.ImobiParser;
 import com.imobiapp.parser.JSoupDocumentRetriever;
+import com.imobiapp.parser.dm.AdData;
 
 /**
  * @author matics.
@@ -32,7 +33,7 @@ public class ImobiParserSystemTest {
 
     @Test
     public void parseData_1() throws IOException, ParseException {
-        List<ImobiParser.AdData> adDataList = imobiParser.parseData(TEST_URL_1);
+        List<AdData> adDataList = imobiParser.parseData(TEST_URL_1);
         Assert.assertThat(adDataList, notNullValue());
         Assert.assertThat(adDataList.size(), greaterThan(0));
 
@@ -41,7 +42,7 @@ public class ImobiParserSystemTest {
 
     @Test
     public void parseData_2() throws IOException, ParseException {
-        List<ImobiParser.AdData> adDataList = imobiParser.parseData(TEST_URL_2);
+        List<AdData> adDataList = imobiParser.parseData(TEST_URL_2);
         Assert.assertThat(adDataList, notNullValue());
         Assert.assertThat(adDataList.size(), greaterThan(0));
 
@@ -50,7 +51,7 @@ public class ImobiParserSystemTest {
 
     @Test
     public void parseData_3() throws IOException, ParseException {
-        List<ImobiParser.AdData> adDataList = imobiParser.parseData(TEST_URL_3);
+        List<AdData> adDataList = imobiParser.parseData(TEST_URL_3);
         Assert.assertThat(adDataList, notNullValue());
         Assert.assertThat(adDataList.size(), greaterThan(0));
 
